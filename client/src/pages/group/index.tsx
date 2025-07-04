@@ -20,7 +20,7 @@ const AllGroups: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/groups")
+    fetch(import.meta.env.VITE_API_URL + "groups")
       .then((res) => res.json())
       .then((data) => setGroups(data))
       .catch(() => setError("Failed to fetch groups"));

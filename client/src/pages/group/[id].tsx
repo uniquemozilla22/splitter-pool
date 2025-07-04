@@ -37,7 +37,7 @@ const FetchGroup: React.FC = () => {
     setSuccess("");
     setFetching(true);
     try {
-      const res = await fetch(`http://localhost:3001/api/group/${id}`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}group/${id}`);
       if (!res.ok) {
         const data = await res.json();
         setError(data.error || "Group not found");
@@ -69,7 +69,7 @@ const FetchGroup: React.FC = () => {
       // Contribute for each user in the group
       const results = await Promise.all(
         group.members.map((user) =>
-          fetch("http://localhost:3001/api/contribute", {
+          fetch(import.meta.env.VITE_API_URL + "contribute", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -102,7 +102,7 @@ const FetchGroup: React.FC = () => {
     setAddUserError("");
     setAddUserLoading(true);
     try {
-      const res = await fetch("http://localhost:3001/api/add-user", {
+      const res = await fetch(import.meta.env.VITE_API_URL + "add-user", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
