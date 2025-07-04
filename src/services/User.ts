@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { PrismaClient, User } from "../../generated/prisma";
+import { PrismaClient, User } from "../generated/prisma";
 
 export class UserService {
   private prisma: PrismaClient;

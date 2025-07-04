@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { Group as PrismaGroup, User } from "../../generated/prisma";
+import { Group as PrismaGroup, User } from "../generated/prisma";
 
 type Group = PrismaGroup & {
   totalPool: number;
@@ -43,7 +43,6 @@ export class GroupService {
       withdrawn: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
-
     };
     group.members.push(user);
     return user;
