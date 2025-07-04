@@ -1,6 +1,5 @@
 import { FaPlusCircle, FaUsers, FaCog } from "react-icons/fa";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import React from "react";
 
 function BottomNav() {
   const location = useLocation();

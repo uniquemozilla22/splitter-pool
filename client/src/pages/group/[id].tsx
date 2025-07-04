@@ -20,7 +20,6 @@ const FetchGroup: React.FC = () => {
   const [group, setGroup] = useState<Group | null>(null);
   const [error, setError] = useState("");
   const [amount, setAmount] = useState("");
-  const [userId, setUserId] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
   const [showDialog, setShowDialog] = useState(false);
