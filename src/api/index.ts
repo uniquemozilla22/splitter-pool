@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
-import { GroupService } from "./services/Group";
+import { GroupService } from "../services/Group";
+import { UserService } from "../services/User";
 // ...existing code...
 
 const app = express();
@@ -33,6 +34,7 @@ const Router = express.Router();
 // Import or define GroupService before using it
 
 const groupService = new GroupService();
+const userService = new UserService();
 
 Router.get("/groups", (req, res) => {
   const groups = groupService.getAllGroups ? groupService.getAllGroups() : [];
@@ -44,6 +46,24 @@ Router.post("/create-group", (req, res) => {
   const { name } = req.body;
   const group = groupService.createGroup(name);
   res.json(group);
+});
+
+Router.get("/users", (req, res) => {
+  const users = userService.getAllUsers();
+  res.json(users);
+});
+
+// @ts-ignore
+Router.get("/create-users", async (req, res) => {
+  try {
+    const user = await userService.createUser("Test User");
+    if (!user) return res.status(404).json({ error: "No user created" });
+    res.json(user);
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: error.message });
+  }
 });
 // @ts-ignore
 Router.post("/add-user", (req: Router.Request, res: express.Response) => {
@@ -79,14 +99,19 @@ Router.get("/group/:groupId", (req: express.Request, res: express.Response) => {
 });
 
 // @ts-ignore
-Router.post("/login", (req: express.Request, res: express.Response) => {
+Router.post("/login", async (req: express.Request, res: express.Response) => {
   const { username } = req.body;
   if (!username || typeof username !== "string") {
     return res.status(400).json({ error: "Username is required" });
   }
-  // For demo: generate a fake user id based on username (or use a real user service)
-  const userId = Buffer.from(username).toString("base64");
-  res.json({ user: username, userId });
+  const user = await userService.getUser(username);
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+  res.status(200).json({
+    user,
+    message: "Login successful",
+  });
 });
 
 app.use("/api", Router);

@@ -1,5 +1,11 @@
 import { randomUUID } from "crypto";
-import { Group, User } from "../types/types";
+import { Group as PrismaGroup, User } from "../../generated/prisma";
+
+type Group = PrismaGroup & {
+  totalPool: number;
+  members: User[];
+  transactions?: Transaction[];
+};
 
 type Transaction = {
   id: string;
@@ -17,6 +23,9 @@ export class GroupService {
     this.groups[groupId] = {
       id: groupId,
       name,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      description: null,
       members: [],
       totalPool: 0,
       transactions: [],
@@ -32,6 +41,9 @@ export class GroupService {
       name,
       contributed: 0,
       withdrawn: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+
     };
     group.members.push(user);
     return user;
@@ -44,7 +56,7 @@ export class GroupService {
   contribute(groupId: string, userId: string, amount: number): Group | null {
     const group = this.groups[groupId];
     if (!group) return null;
-    const user = group.members.find((u) => u.id === userId);
+    const user = group.members.find((u: User) => u.id === userId);
     if (!user) return null;
     user.contributed += amount;
     group.totalPool += amount;
@@ -63,7 +75,7 @@ export class GroupService {
   withdraw(groupId: string, userId: string, amount: number): Group | null {
     const group = this.groups[groupId];
     if (!group || group.totalPool < amount) return null;
-    const user = group.members.find((u) => u.id === userId);
+    const user = group.members.find((u: User) => u.id === userId);
     if (!user) return null;
     user.withdrawn += amount;
     group.totalPool -= amount;

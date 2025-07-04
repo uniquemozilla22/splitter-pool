@@ -13,9 +13,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     () => localStorage.getItem("user") || null
   );
 
-  const login = (username: string) => {
-    setUser(username);
-    localStorage.setItem("user", username);
+  const login = (userData: string | object) => {
+    const user = JSON.stringify(userData);
+    setUser(user);
+    localStorage.setItem("user", user);
   };
 
   const logout = () => {

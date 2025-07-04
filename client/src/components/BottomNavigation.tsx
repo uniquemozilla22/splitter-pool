@@ -4,7 +4,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
-
   const isCreateGroup = location.pathname === "/groups/create-group";
   const isSettings = location.pathname === "/settings";
 

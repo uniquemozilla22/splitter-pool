@@ -30,8 +30,7 @@ const Login: React.FC = () => {
         }
         return;
       }
-      // Store userId in localStorage as user
-      login(data.userId);
+      login(data.user);
       navigate("/groups");
     } catch {
       setError("Network error");
