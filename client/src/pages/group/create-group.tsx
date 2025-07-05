@@ -34,7 +34,7 @@ const CreateGroup: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-8 bg-white rounded-lg shadow-md">
+    <div className="max-w-md mx-auto mt-10 p-8 rounded-lg shadow-2xl">
       <h2 className="text-2xl font-bold mb-6 text-center text-blue-600">
         Create a Group
       </h2>
@@ -55,16 +55,14 @@ const CreateGroup: React.FC = () => {
         </button>
       </form>
       {result && (
-        <div className="mt-4 p-3 bg-green-100 text-green-800 rounded text-center">
+        <div className="mt-4 p-3 text-green-800 rounded text-center">
           Group created! <br />
           <span className="font-semibold">ID:</span> {result.id} <br />
           <span className="font-semibold">Name:</span> {result.name}
         </div>
       )}
       {error && (
-        <div className="mt-4 p-3 bg-red-100 text-red-800 rounded text-center">
-          {error}
-        </div>
+        <div className="mt-4 p-3 text-red-800 rounded text-center">{error}</div>
       )}
     </div>
   );

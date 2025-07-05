@@ -1,7 +1,14 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+
+interface UserData {
+  name: string;
+  id: string;
+  [k: string]: string; // Allow additional properties
+  // Add other user properties as needed
+}
 
 type AuthContextType = {
-  user: string | null;
+  user: UserData | null;
   login: (username: string) => void;
   logout: () => void;
 };
@@ -9,18 +16,23 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<string | null>(
-    () => localStorage.getItem("user") || null
-  );
+  const [user, setUser] = useState<UserData>({} as UserData);
 
-  const login = (userData: string | object) => {
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const login = (userData: UserData) => {
     const user = JSON.stringify(userData);
-    setUser(user);
+    setUser(userData as UserData);
     localStorage.setItem("user", user);
   };
 
   const logout = () => {
-    setUser(null);
+    setUser({} as UserData);
     localStorage.removeItem("user");
     sessionStorage.clear();
   };

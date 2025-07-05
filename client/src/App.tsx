@@ -6,7 +6,9 @@ import BottomNav from "./components/BottomNavigation";
 import TopBar from "./components/TopBar";
 import Settings from "./pages/settings";
 import Login from "./pages/login";
-import { AuthProvider, useAuth } from "./user/authcontext";
+import { AuthProvider, useAuth } from "./context/auth/authcontext";
+import HomePage from "./pages/home";
+import LoadingContextProvider from "./context/loading/loadingcontext";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
@@ -20,53 +22,63 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <TopBar />
-        <div className="pb-20 h-screen flex flex-col justify-center bg-gray-50">
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route
-              path="/groups"
-              element={
-                <ProtectedRoute>
-                  <AllGroups />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/groups/create-group"
-              element={
-                <ProtectedRoute>
-                  <CreateGroup />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/groups/:id"
-              element={
-                <ProtectedRoute>
-                  <FetchGroup />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="*"
-              element={
-                <ProtectedRoute>
-                  <AllGroups />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-          <BottomNav />
-        </div>
+        <LoadingContextProvider>
+          <TopBar />
+          <div className="pb-20 h-screen w-screen">
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <HomePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/groups"
+                element={
+                  <ProtectedRoute>
+                    <AllGroups />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/groups/create-group"
+                element={
+                  <ProtectedRoute>
+                    <CreateGroup />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/groups/:id"
+                element={
+                  <ProtectedRoute>
+                    <FetchGroup />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="*"
+                element={
+                  <ProtectedRoute>
+                    <AllGroups />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+            <BottomNav />
+          </div>
+        </LoadingContextProvider>
       </BrowserRouter>
     </AuthProvider>
   );

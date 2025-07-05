@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../user/authcontext";
+import { useAuth } from "../../context/auth/authcontext";
+import useLoadingContext from "../../hooks/useLoadingContext";
+import { LoadingActionStrings } from "../../context/loading/loadingcontext";
+import { FaSpinner } from "react-icons/fa";
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -8,33 +11,37 @@ const Login: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const loading = useLoadingContext();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    if (!username.trim()) {
-      setError("Username is required");
-      return;
-    }
-    try {
-      const res = await fetch(import.meta.env.VITE_API_URL + "login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: username.trim() }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        if (res.status === 404) {
-          setError("User not found");
-        } else {
-          setError(data.error || "Login failed");
-        }
+    loading.dispatchLoading(LoadingActionStrings.USERLOGIN, async () => {
+      setError("");
+      if (!username.trim()) {
+        setError("Username is required");
         return;
       }
-      login(data.user);
-      navigate("/groups");
-    } catch {
-      setError("Network error");
-    }
+      try {
+        const res = await fetch(import.meta.env.VITE_API_URL + "login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: username.trim() }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          if (res.status === 404) {
+            setError("User not found");
+          } else {
+            setError(data.error || "Login failed");
+          }
+          return;
+        }
+        login(data.user);
+        navigate("/");
+      } catch {
+        setError("Network error");
+      }
+    });
   };
 
   return (
@@ -54,6 +61,9 @@ const Login: React.FC = () => {
           type="submit"
           className="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700 transition"
         >
+          {loading.loading.includes(LoadingActionStrings.USERLOGIN) && (
+            <FaSpinner className="animate-spin mr-2 inline-block" />
+          )}
           Login
         </button>
       </form>

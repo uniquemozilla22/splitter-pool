@@ -1,5 +1,5 @@
-import { FaPlusCircle, FaUsers, FaCog } from "react-icons/fa";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { FaPlusCircle, FaUsers, FaCog, FaHome } from "react-icons/fa";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
 function BottomNav() {
   const location = useLocation();
@@ -9,28 +9,36 @@ function BottomNav() {
 
   return (
     <>
-      {/* Bottom Navigation with Groups and Settings */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-blue-50 border-t flex justify-center items-center gap-16 py-3 z-50">
-        <Link
+      <nav className="fixed bottom-0 left-0 right-0 flex items-center justify-around py-3 z-50 shadow-2xs">
+        <NavLink
+          to="/"
+          className={`flex flex-col items-center text-sm ${
+            location.pathname === "/" ? "text-blue-700" : "text-gray-400"
+          }`}
+        >
+          <FaHome size={24} />
+          <span>Home</span>
+        </NavLink>
+        <NavLink
           to="/groups"
           className={`flex flex-col items-center text-sm ${
-            location.pathname.startsWith("/groups")
-              ? "text-blue-700"
-              : "text-gray-400"
+            location.pathname.startsWith("/groups") ? "text-blue-700" : ""
           }`}
         >
           <FaUsers size={24} />
           <span>Groups</span>
-        </Link>
-        <Link
+        </NavLink>
+        <NavLink
           to="/settings"
-          className={`flex flex-col items-center text-sm ${
-            isSettings ? "text-blue-700" : "text-gray-400"
-          }`}
+          className={(navlink) =>
+            `flex flex-col items-center text-sm ${
+              navlink.isActive ? "text-blue-700" : "text-gray-400"
+            }`
+          }
         >
           <FaCog size={24} />
           <span>Settings</span>
-        </Link>
+        </NavLink>
       </nav>
       {/* Floating Plus Button (hide on create-group or settings route) */}
       {!isCreateGroup && !isSettings && (

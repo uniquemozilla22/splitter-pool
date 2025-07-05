@@ -6,8 +6,8 @@
   "scripts": {
     "client": "vite",
     "build": "prisma generate && tsc && cp -r src/generated dist/src/generated",
-    "start": "node dist/server.js",
-    "dev": "ts-node-dev --respawn server.ts"
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn index.ts"
   },
   "keywords": [],
   "author": "",
