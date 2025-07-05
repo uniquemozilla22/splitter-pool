@@ -8,7 +8,10 @@ type LoadingLevelStrings = keyof typeof LoadingActionStrings;
 
 interface LoadingContextType {
   loading: LoadingLevelStrings[];
-  dispatchLoading: (loadingString: string, callback?: () => void) => void;
+  dispatchLoading: (
+    loadingString: string,
+    callback?: () => Promise<void>
+  ) => Promise<void>;
 }
 
 export const LoadingContext = React.createContext<LoadingContextType>(

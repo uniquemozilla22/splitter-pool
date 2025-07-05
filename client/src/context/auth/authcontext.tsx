@@ -9,7 +9,7 @@ interface UserData {
 
 type AuthContextType = {
   user: UserData | null;
-  login: (username: string) => void;
+  login: (username: UserData) => void;
   logout: () => void;
 };
 
