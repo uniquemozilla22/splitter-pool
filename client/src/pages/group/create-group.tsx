@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axiosBase from "../../api/base";
 
 const CreateGroup: React.FC = () => {
   const [name, setName] = useState("");
@@ -14,13 +15,9 @@ const CreateGroup: React.FC = () => {
     setError("");
     setResult(null);
     try {
-      const res = await fetch(import.meta.env.VITE_API_URL + "create-group", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
+      const res = await axiosBase.post("create-group", { name });
+      const data = res.data;
+      if (!res.data) {
         setError(data.error || "Failed to create group");
         return;
       }
@@ -34,7 +31,7 @@ const CreateGroup: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-8 rounded-lg shadow-2xl">
+    <div className="w-full md:max-w-2xl lg:max-w-md mx-auto mt-10 p-8 rounded-lg shadow-2xl">
       <h2 className="text-2xl font-bold mb-6 text-center text-blue-600">
         Create a Group
       </h2>

@@ -12,6 +12,8 @@ import LoadingContextProvider from "./context/loading/loadingcontext";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
+
+  console.log("ProtectedRoute user:", user);
   if (!user) {
     return <Navigate to="/login" replace />;
   }
@@ -24,7 +26,7 @@ function App() {
       <BrowserRouter>
         <LoadingContextProvider>
           <TopBar />
-          <div className="pb-20 h-screen w-screen">
+          <div className="pb-20 h-screen w-screen overflow-y-s">
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route

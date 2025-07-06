@@ -4,6 +4,7 @@ import { useAuth } from "../../context/auth/authcontext";
 import useLoadingContext from "../../hooks/useLoadingContext";
 import { LoadingActionStrings } from "../../context/loading/loadingcontext";
 import { FaSpinner } from "react-icons/fa";
+import axiosBase from "../../api/base";
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -22,13 +23,11 @@ const Login: React.FC = () => {
         return;
       }
       try {
-        const res = await fetch(import.meta.env.VITE_API_URL + "login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: username.trim() }),
+        const res = await axiosBase.post("login", {
+          username: username.trim(),
         });
-        const data = await res.json();
-        if (!res.ok) {
+        const data = res.data;
+        if (!res.data) {
           if (res.status === 404) {
             setError("User not found");
           } else {

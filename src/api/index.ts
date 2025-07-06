@@ -2,15 +2,20 @@ import express from "express";
 import cors from "cors";
 import { GroupService } from "../services/Group";
 import { UserService } from "../services/User";
-// ...existing code...
+import authMiddleware from "./middleware/auth.middleware";
+import path from "path";
 
 const app = express();
 const port = 3001;
 
-app.use(cors());
+app.use(
+  cors({
+    // allowedHeaders: ["Content-Type", "Authorization"],
+    // methods: ["GET", "POST", "PUT", "DELETE"],
+    // origin: "http://localhost:5173",
+  })
+);
 app.use(express.json());
-
-// Middleware for Logging
 
 app.use((req, res, next) => {
   const log = {
@@ -31,30 +36,41 @@ app.use((req, res, next) => {
 
 const Router = express.Router();
 
-// Import or define GroupService before using it
-
 const groupService = new GroupService();
 const userService = new UserService();
 
-Router.get("/groups", (req, res) => {
-  const groups = groupService.getAllGroups ? groupService.getAllGroups() : [];
-  res.json(groups);
+Router.get("/groups", authMiddleware, async (_req, res) => {
+  try {
+    const groups = await groupService.getAllGroups();
+    res.json(groups);
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: error.message });
+  }
 });
 
 // @ts-ignore
-Router.post("/create-group", (req, res) => {
-  const { name } = req.body;
-  const group = groupService.createGroup(name);
-  res.json(group);
+Router.post("/create-group", authMiddleware, async (req, res) => {
+  try {
+    const { name } = req.body;
+    const { id } = (req as any).user;
+    const group = await groupService.createGroup(name, id);
+    res.json(group);
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: error.message });
+  }
 });
 
-Router.get("/users", (req, res) => {
+Router.get("/users", authMiddleware, (req, res) => {
   const users = userService.getAllUsers();
   res.json(users);
 });
 
 // @ts-ignore
-Router.get("/create-users", async (req, res) => {
+Router.get("/create-users", authMiddleware, async (req, res) => {
   try {
     const user = await userService.createUser("Test User");
     if (!user) return res.status(404).json({ error: "No user created" });
@@ -66,37 +82,57 @@ Router.get("/create-users", async (req, res) => {
   }
 });
 // @ts-ignore
-Router.post("/add-user", (req: Router.Request, res: express.Response) => {
-  const { groupId, name } = req.body;
-  const user = groupService.addUser(groupId, name);
-  if (!user) return res.status(404).json({ error: "Group not found" });
-  res.json(user);
-});
-// @ts-ignore
-Router.post("/contribute", (req: express.Request, res: express.Response) => {
-  const { groupId, userId, amount } = req.body;
-  const group = groupService.contribute(groupId, userId, amount);
-  if (!group) return res.status(404).json({ error: "Group or user not found" });
-  res.json(group);
-});
+Router.post(
+  "/add-user",
+  authMiddleware,
+  // @ts-ignore
+
+  (req: express.Request, res: express.Response) => {
+    const { groupId, name } = req.body;
+    const user = groupService.addUser(groupId, name);
+    if (!user) return res.status(404).json({ error: "Group not found" });
+    res.json(user);
+  }
+);
+Router.post(
+  "/contribute",
+  authMiddleware,
+  // @ts-ignore
+  (req: express.Request, res: express.Response) => {
+    const { groupId, userId, amount } = req.body;
+    const group = groupService.contribute(groupId, userId, amount);
+    if (!group)
+      return res.status(404).json({ error: "Group or user not found" });
+    res.json(group);
+  }
+);
 
 // @ts-ignore
-Router.post("/withdraw", (req: express.Request, res: express.Response) => {
-  const { groupId, userId, amount } = req.body;
-  const group = groupService.withdraw(groupId, userId, amount);
-  if (!group)
-    return res
-      .status(400)
-      .json({ error: "Insufficient funds or group/user not found" });
-  res.json(group);
-});
+Router.post(
+  "/withdraw",
+  authMiddleware,
+  // @ts-ignore
+  (req: express.Request, res: express.Response) => {
+    const { groupId, userId, amount } = req.body;
+    const group = groupService.withdraw(groupId, userId, amount);
+    if (!group)
+      return res
+        .status(400)
+        .json({ error: "Insufficient funds or group/user not found" });
+    res.json(group);
+  }
+);
 
-// @ts-ignore
-Router.get("/group/:groupId", (req: express.Request, res: express.Response) => {
-  const group = groupService.getGroup(req.params.groupId);
-  if (!group) return res.status(404).json({ error: "Group not found" });
-  res.json(group);
-});
+Router.get(
+  "/group/:groupId",
+  authMiddleware,
+  // @ts-ignore
+  async (req: express.Request, res: express.Response) => {
+    const group = await groupService.getGroup(req.params.groupId);
+    if (!group) return res.status(404).json({ error: "Group not found" });
+    res.json(group);
+  }
+);
 
 // @ts-ignore
 Router.post("/login", async (req: express.Request, res: express.Response) => {
@@ -116,7 +152,7 @@ Router.post("/login", async (req: express.Request, res: express.Response) => {
 
 app.use("/api", Router);
 
-app.get("/", (req, res) => {
+app.get("/routes-api", (req, res) => {
   // Get routes from the Router stack
   const routes = Router.stack
     .filter((layer: any) => layer.route)
@@ -134,6 +170,25 @@ app.get("/", (req, res) => {
     availableRoutes: routes,
   });
 });
+
+// Serve static files from the React build directory
+// app.use(express.static(path.join(__dirname, "../../client/dist")));
+
+// const pathFile = path.join(__dirname, "../../client/dist/index.html");
+// Handle all other routes by serving the React index.html
+// app.get("*", (_req, res) => {
+//   try {
+//     res.sendFile(pathFile, (err) => {
+//       if (err) {
+//         console.error("Error serving index.html:", err);
+//         res.status(500).send("Internal Server Error");
+//       }
+//     });
+//   } catch (error) {
+//     console.error("Error serving index.html:", error);
+//     res.status(500).send("Internal Server Error");
+//   }
+// });
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

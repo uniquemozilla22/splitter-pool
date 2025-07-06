@@ -9,11 +9,11 @@ function BottomNav() {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 flex items-center justify-around py-3 z-50 shadow-2xs">
+      <nav className="fixed bg-gray-800 bottom-0 left-0 right-0 flex items-center justify-around py-3 z-50 shadow-2xs  bg-blend-color">
         <NavLink
           to="/"
           className={`flex flex-col items-center text-sm ${
-            location.pathname === "/" ? "text-blue-700" : "text-gray-400"
+            location.pathname === "/" ? "text-blue-400" : ""
           }`}
         >
           <FaHome size={24} />
@@ -22,7 +22,7 @@ function BottomNav() {
         <NavLink
           to="/groups"
           className={`flex flex-col items-center text-sm ${
-            location.pathname.startsWith("/groups") ? "text-blue-700" : ""
+            location.pathname.startsWith("/groups") ? "text-blue-400" : ""
           }`}
         >
           <FaUsers size={24} />
@@ -32,7 +32,7 @@ function BottomNav() {
           to="/settings"
           className={(navlink) =>
             `flex flex-col items-center text-sm ${
-              navlink.isActive ? "text-blue-700" : "text-gray-400"
+              navlink.isActive ? "text-blue-400" : ""
             }`
           }
         >

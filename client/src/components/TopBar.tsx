@@ -18,7 +18,7 @@ function TopBar() {
   return (
     <>
       {showBack && (
-        <div className="fixed top-0 left-0 right-0 shadow-md z-50 h-14 flex items-center px-4">
+        <div className="fixed bg-gray-800 top-0 left-0 right-0 shadow-md z-50 h-14 flex items-center px-4">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center text-blue-600 hover:text-blue-800"

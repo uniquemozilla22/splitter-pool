@@ -2,6 +2,8 @@ import React from "react";
 
 export enum LoadingActionStrings {
   USERLOGIN = "USERLOGIN",
+  FETCHGROUPS = "FETCH/GROUPS",
+  FETCHGROUP = "FETCH/GROUP",
 }
 
 type LoadingLevelStrings = keyof typeof LoadingActionStrings;
@@ -33,11 +35,9 @@ const LoadingContextProvider: React.FC<{ children: React.ReactNode }> = ({
     } catch (error) {
       console.error("Error in dispatchLoading:", error);
     } finally {
-      setTimeout(() => {
-        setLoading((prev) =>
-          prev.filter((item) => item !== (loadingString as LoadingLevelStrings))
-        );
-      }, 1000);
+      setLoading((prev) =>
+        prev.filter((item) => item !== (loadingString as LoadingLevelStrings))
+      );
     }
   };
 

@@ -25,6 +25,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
+  
+
   const login = (userData: UserData) => {
     const user = JSON.stringify(userData);
     setUser(userData as UserData);

@@ -1,19 +1,10 @@
 import React, { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Dialog } from "@headlessui/react";
-
-type User = {
-  id: string;
-  name: string;
-  balance: number;
-};
-
-type Group = {
-  id: string;
-  name: string;
-  members: User[];
-  totalPool: number;
-};
+import axiosBase from "../../api/base";
+import type { Group } from "../../types";
+import useLoadingContext from "../../hooks/useLoadingContext";
+import { LoadingActionStrings } from "../../context/loading/loadingcontext";
 
 const FetchGroup: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -24,6 +15,7 @@ const FetchGroup: React.FC = () => {
   const [success, setSuccess] = useState("");
   const [showDialog, setShowDialog] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const loadingContext = useLoadingContext();
 
   // Add user dialog state
   const [showAddUserDialog, setShowAddUserDialog] = useState(false);
@@ -37,23 +29,27 @@ const FetchGroup: React.FC = () => {
     setSuccess("");
     setFetching(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}group/${id}`);
-      if (!res.ok) {
-        const data = await res.json();
+      const res = await axiosBase(`group/${id}`);
+      if (!res.data) {
+        const data = res.data;
         setError(data.error || "Group not found");
         setFetching(false);
         return;
       }
-      const data = await res.json();
+      const data = res.data;
       setGroup(data);
     } catch (err: any) {
+      console.error("Error fetching group:", err);
       setError("Failed to fetch group");
     }
     setFetching(false);
   };
 
   React.useEffect(() => {
-    if (id) fetchGroup();
+    if (id)
+      loadingContext.dispatchLoading(LoadingActionStrings.FETCHGROUP, () =>
+        fetchGroup()
+      );
     // eslint-disable-next-line
   }, [id]);
 
@@ -65,34 +61,30 @@ const FetchGroup: React.FC = () => {
 
     if (!group) return;
 
-    try {
-      // Contribute for each user in the group
-      const results = await Promise.all(
-        group.members.map((user) =>
-          fetch(import.meta.env.VITE_API_URL + "contribute", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              groupId: id,
-              userId: user.id,
-              amount: Number(amount),
-            }),
-          })
-        )
-      );
+    // try {
+    //   // Contribute for each user in the group
+    //   const results = await Promise.all(
+    //     group.memberLinks.map((user) =>
+    //       axiosBase.post("contribute", {
+    //         groupId: id,
+    //         userId: user.id,
+    //         amount: Number(amount),
+    //       })
+    //     )
+    //   );
 
-      const failed = results.filter((res) => !res.ok);
-      if (failed.length > 0) {
-        setError("Some contributions failed.");
-      } else {
-        setSuccess("Pool successful!");
-        setAmount("");
-        fetchGroup();
-        setShowDialog(false);
-      }
-    } catch {
-      setError("Failed to pool");
-    }
+    //   const failed = results.filter((res) => !res.ok);
+    //   if (failed.length > 0) {
+    //     setError("Some contributions failed.");
+    //   } else {
+    //     setSuccess("Pool successful!");
+    //     setAmount("");
+    //     fetchGroup();
+    //     setShowDialog(false);
+    //   }
+    // } catch {
+    //   setError("Failed to pool");
+    // }
     setLoading(false);
   };
 
@@ -102,16 +94,12 @@ const FetchGroup: React.FC = () => {
     setAddUserError("");
     setAddUserLoading(true);
     try {
-      const res = await fetch(import.meta.env.VITE_API_URL + "add-user", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          groupId: id,
-          name: newUserName,
-        }),
+      const res = await axiosBase.post("add-user", {
+        groupId: id,
+        name: newUserName,
       });
-      const data = await res.json();
-      if (!res.ok) {
+      const data = res.data;
+      if (!data) {
         setAddUserError(data.error || "Failed to add user");
       } else {
         setNewUserName("");
@@ -126,14 +114,17 @@ const FetchGroup: React.FC = () => {
 
   // Skeleton component
   const Skeleton = ({ className = "" }: { className?: string }) => (
-    <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
+    <div className={`animate-pulserounded ${className}`} />
   );
 
   return (
-    <div className="max-w-xl mx-auto mt-10 p-8 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-center text-blue-600">
-        Group Details
-      </h2>
+    <div className="max-w-xl mx-auto mt-10 p-8 rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold mb-6 text-center ">Group Details</h2>
+      {loadingContext.loading.includes(LoadingActionStrings.FETCHGROUP) && (
+        <GroupSkeleton />
+      )}
+      {/* Error and success messages */}
+
       {error && <div className="text-red-600 mb-4">{error}</div>}
       {success && <div className="text-green-600 mb-4">{success}</div>}
       {/* Skeletons while fetching */}
@@ -154,10 +145,10 @@ const FetchGroup: React.FC = () => {
             <b>ID:</b> {group.id}
           </p>
           <p>
-            <b>Total Balance:</b> {group.totalPool}
+            <b>Total Balance:</b> {"0"}
           </p>
           <div className="flex gap-2 mt-4 mb-2">
-            {group.members.length > 0 ? (
+            {group.memberLinks.length > 0 ? (
               <button
                 onClick={() => setShowDialog(true)}
                 className="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700 transition"
@@ -174,15 +165,17 @@ const FetchGroup: React.FC = () => {
             )}
           </div>
           <h4 className="font-semibold mt-4 mb-2">Users</h4>
-          {group.members.length === 0 ? (
+          {group.memberLinks.length === 0 ? (
             <div className="text-gray-500 mb-4">
               No users in this group yet.
             </div>
           ) : (
             <ul className="list-disc pl-5 mb-4">
-              {group.members.map((user) => (
-                <li key={user.id}>
-                  {user.name} (ID: {user.id}) - Balance: {user.balance}
+              {group.memberLinks.map((groupMember) => (
+                <li key={groupMember.id}>
+                  {groupMember.user.name} - Balance:{" "}
+                  {groupMember.user.contributed} contributed,{" "}
+                  {groupMember.user.withdrawn} withdrawn
                 </li>
               ))}
             </ul>
@@ -201,7 +194,7 @@ const FetchGroup: React.FC = () => {
       >
         <div className="fixed inset-0 bg-black/40" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm relative">
+          <Dialog.Panel className=" rounded-lg shadow-lg p-6 w-full max-w-sm relative">
             <button
               onClick={() => setShowDialog(false)}
               className="absolute top-2 right-3 text-gray-400 hover:text-gray-600 text-xl"
@@ -279,6 +272,21 @@ const FetchGroup: React.FC = () => {
           </Dialog.Panel>
         </div>
       </Dialog>
+    </div>
+  );
+};
+
+const GroupSkeleton: React.FC = () => {
+  return (
+    <div>
+      <div className=" rounded p-4 animate-pulse">
+        <div className="h-6 bg-gray-200 mb-2 w-1/2"></div>
+        <div className="h-4 bg-gray-200 mb-2 w-1/3"></div>
+        <div className="h-4 bg-gray-200 mb-2 w-1/4"></div>
+        <div className="h-8 bg-gray-200 mb-2"></div>
+        <div className="h-8 bg-gray-200 mb-2"></div>
+        <div className="h-8 bg-gray-200 mb-2"></div>
+      </div>
     </div>
   );
 };
